@@ -15,6 +15,93 @@ def test_r_types():
     assert regex.match("two")
 
 
+def test_r_refs():
+    result = format.r_refs()
+    regex = re.compile(result)
+
+    assert regex.search("Refs: CI-1234")
+
+
+def test_r_refs__numbers_in_team():
+    result = format.r_refs()
+    regex = re.compile(result)
+
+    assert regex.search("Refs: SDP0123-1234")
+
+
+def test_r_refs__refs_lowercase():
+    result = format.r_refs()
+    regex = re.compile(result)
+
+    assert not regex.search("refs: CI-1234")
+
+
+def test_r_refs__refs_no_space():
+    result = format.r_refs()
+    regex = re.compile(result)
+
+    assert not regex.search("refs:CI-1234")
+
+
+def test_r_refs__letters_in_end():
+    result = format.r_refs()
+    regex = re.compile(result)
+
+    assert not regex.search("Refs: CI-CI")
+
+
+def test_r_refs__wrong_format():
+    result = format.r_refs()
+    regex = re.compile(result)
+
+    assert not regex.search("Refs: #123")
+
+
+def test_r_refs__multiple():
+    result = format.r_refs()
+    regex = re.compile(result)
+
+    assert regex.search("Refs: CI-123,DEF-123")
+
+
+def test_r_refs__multiple_w_space():
+    result = format.r_refs()
+    regex = re.compile(result)
+
+    assert regex.search("Refs: CI-123, DEF-123")
+
+
+def test_r_refs__multiple_error_first():
+    result = format.r_refs()
+    regex = re.compile(result)
+
+    assert not regex.search("Refs: incorrect, CI-123")
+
+
+def test_r_refs__multiple_error_last():
+    result = format.r_refs()
+    regex = re.compile(result)
+
+    assert not regex.search("Refs: CI-123, incorrect")
+
+
+def test_r_refs__spaces():
+    result = format.r_refs()
+    regex = re.compile(result)
+
+    assert regex.search("Refs: CI-123        ")
+
+
+def test_r_refs__new_line():
+    result = format.r_refs()
+    regex = re.compile(result)
+
+    assert regex.search(
+        """Refs: CI-123
+    """
+    )
+
+
 def test_r_scope__optional():
     result = format.r_scope()
     regex = re.compile(result)
@@ -210,3 +297,48 @@ def test_is_conventional__missing_delimiter():
     input = "feat message"
 
     assert not format.is_conventional(input)
+
+
+def test_is_conventional__correct_refs():
+    input = """feat: message
+
+    A random body
+
+    Refs: CI-15624
+    """
+
+    assert format.is_conventional(input, force_refs=True)
+
+
+def test_is_conventional__incorrect_refs():
+    input = """feat: message
+    Refs:CI-15624
+    """
+
+    assert not format.is_conventional(input, force_refs=True)
+
+
+def test_is_conventional__with_git_comments():
+    input = """feat(conventional-commit): Added force reps on check commit
+
+Refs: DEF-1844
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# On branch my_branch
+# Your branch is ahead of 'origin/my_branch' by 1 commit.
+#   (use "git push" to publish your local commits)
+#
+# Changes to be committed:
+#	modified:   .pre-commit-config.yaml
+#	modified:   folder/folder/pip_requirements.txt
+#	modified:   script.sh
+#
+# Changes not staged for commit:
+#	modified:   mypackage/package (modified content)
+#
+# Untracked files:
+#	my-file.txt"""
+
+    assert format.is_conventional(input, force_refs=True)

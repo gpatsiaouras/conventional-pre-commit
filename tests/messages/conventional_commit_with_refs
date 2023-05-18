@@ -1,0 +1,21 @@
+feat(conventional-commit): Added force reps on check commit
+
+Refs: CI-1844
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# On branch my_branch
+# Your branch is ahead of 'origin/my_branch' by 1 commit.
+#   (use "git push" to publish your local commits)
+#
+# Changes to be committed:
+#	modified:   .pre-commit-config.yaml
+#	modified:   folder/folder/pip_requirements.txt
+#	modified:   script.sh
+#
+# Changes not staged for commit:
+#	modified:   mypackage/package (modified content)
+#
+# Untracked files:
+#	my-file.txt

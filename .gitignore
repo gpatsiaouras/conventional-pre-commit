@@ -2,3 +2,6 @@
 *.py[co]
 .coverage
 dist
+build
+.idea
+venv

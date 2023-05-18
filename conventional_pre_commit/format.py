@@ -1,5 +1,7 @@
 import re
 
+from conventional_pre_commit.check_result import ConventionalCommitCheckResult
+
 CONVENTIONAL_TYPES = ["feat", "fix"]
 DEFAULT_TYPES = [
     "build",
@@ -39,6 +41,11 @@ def r_subject():
     return r" .+"
 
 
+def r_refs():
+    """Regex str for refs on footer."""
+    return r"(?<=Refs: )([A-Z0-9]+-[0-9]+,? ?)+(\s?)+$"
+
+
 def conventional_types(types=[]):
     """Return a list of Conventional Commits types merged with the given types."""
     if set(types) & set(CONVENTIONAL_TYPES) == set():
@@ -46,7 +53,7 @@ def conventional_types(types=[]):
     return types
 
 
-def is_conventional(input, types=DEFAULT_TYPES, optional_scope=True):
+def is_conventional(input, types=DEFAULT_TYPES, optional_scope=True, force_refs=False) -> ConventionalCommitCheckResult:
     """
     Returns True if input matches Conventional Commits formatting
     https://www.conventionalcommits.org
@@ -56,5 +63,12 @@ def is_conventional(input, types=DEFAULT_TYPES, optional_scope=True):
     types = conventional_types(types)
     pattern = f"^({r_types(types)}){r_scope(optional_scope)}{r_delim()}{r_subject()}$"
     regex = re.compile(pattern, re.DOTALL)
+    regex_result = regex.match(input)
+    result = ConventionalCommitCheckResult()
+    result.add(regex_result, "Subject is incorrect")
 
-    return bool(regex.match(input))
+    if force_refs:
+        regex = re.compile(r_refs(), re.MULTILINE)
+        result.add(regex.search(input), "Refs missing or not correct")
+
+    return result

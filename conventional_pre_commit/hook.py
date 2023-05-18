@@ -23,6 +23,9 @@ def main(argv=[]):
     parser.add_argument(
         "--force-scope", action="store_false", default=True, dest="optional_scope", help="Force commit to have scope defined."
     )
+    parser.add_argument(
+        "--force-refs", action="store_true", default=False, dest="force_refs", help="Force commit to have refs defined."
+    )
 
     if len(argv) < 1:
         argv = sys.argv[1:]
@@ -47,12 +50,16 @@ See {Colors.LBLUE}https://git-scm.com/docs/git-commit/#_discussion{Colors.RESTOR
         )
         return RESULT_FAIL
 
-    if format.is_conventional(message, args.types, args.optional_scope):
+    result = format.is_conventional(message, args.types, args.optional_scope, args.force_refs)
+    if bool(result):
         return RESULT_SUCCESS
     else:
         print(
             f"""
         {Colors.LRED}[Bad Commit message] >>{Colors.RESTORE} {message}
+        Result: {Colors.LRED}FAIL{Colors.RESTORE}
+        Reason: {str(result)}
+
         {Colors.YELLOW}Your commit message does not follow Conventional Commits formatting
         {Colors.LBLUE}https://www.conventionalcommits.org/{Colors.YELLOW}
 
@@ -71,7 +78,20 @@ See {Colors.LBLUE}https://git-scm.com/docs/git-commit/#_discussion{Colors.RESTOR
 
         {Colors.YELLOW}Example commit with scope in parentheses after the type for more context:{Colors.RESTORE}
 
-            fix(account): remove infinite loop"""
+            fix(account): remove infinite loop
+
+        {Colors.YELLOW}Example commit with refs:{Colors.RESTORE}
+
+            fix(account): fixed feature 1
+
+            Refs: CI-12312
+
+        {Colors.YELLOW}Example commit without refs but forced:{Colors.RESTORE}
+
+            fix(account): fixed feature 1
+
+            Refs: VOID
+        """
         )
         return RESULT_FAIL
 
